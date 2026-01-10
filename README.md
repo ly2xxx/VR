@@ -8,14 +8,24 @@ Run a full Linux desktop environment on your Meta Quest 3 using Termux + proot-d
 
 ### Quick Start (5-minute setup)
 
-After installing [Termux](https://github.com/termux/termux-app/releases) and [Termux:X11](https://github.com/termux/termux-x11/releases) APKs on your Quest 3:
+After installing 
+[Termux](https://github.com/termux/termux-app/releases) => download termux-app_v0.119.0-beta.3+apt-android-7-github-debug_arm64-v8a.apk
+and [Termux:X11](https://github.com/termux/termux-x11/releases) => download app-arm64-v8a-debug.apk
+APKs on your Quest 3. **Termux** provides the Linux system, while **Termux:X11** displays the graphical desktop.
 
 ```bash
 # Run this in Termux on your Quest 3
 curl -fsSL https://raw.githubusercontent.com/ly2xxx/VR/main/scripts/quest3-linux-setup.sh | bash
 ```
 
-Then type `linux` to start your desktop!
+> 💡 **Tip:** Open this page in the **Meta Quest Browser**, copy the command above, then switch to Termux and **long-press (hold trigger)** anywhere in the terminal to paste.
+
+Then run:
+```bash
+source ~/.bashrc
+```
+
+Now you can type `linux` to start your desktop!
 
 ### What You Get
 
