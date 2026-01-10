@@ -749,6 +749,18 @@ apt upgrade
 apt install -f  # Fix broken dependencies
 ```
 
+### Stuck Installation (elementary-xfce-icon-theme)
+
+**Cause:** Some packages take a long time to generate caches on ARM devices.
+
+**Solution:**
+1. **Wait:** It can take up to 10 minutes.
+2. **Interrupt:** If stuck longer, press `CTRL` + `C` (or Volume Down + C).
+3. **Fix:** Run this command to repair the installation:
+   ```bash
+   dpkg --configure -a
+   ```
+
 ---
 
 ## Performance Tips
