@@ -20,12 +20,16 @@ curl -fsSL https://raw.githubusercontent.com/ly2xxx/VR/main/scripts/quest3-linux
 
 > 💡 **Tip:** Open this page in the **Meta Quest Browser**, copy the command above, then switch to Termux and **long-press (hold trigger)** anywhere in the terminal to paste.
 
-Then run:
+Wait until you see **"Setup Complete!"**. This may take a few minutes.
+
+Then restart Termux, or run:
 ```bash
 source ~/.bashrc
 ```
 
-Now you can type `linux` to start your desktop!
+If you get a "No such file" error, the installation likely didn't finish. Try running the setup command again.
+
+To actully start your desktop, type: `linux` (or `./start-linux.sh`)
 
 ### What You Get
 
