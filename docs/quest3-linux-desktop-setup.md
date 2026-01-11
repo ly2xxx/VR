@@ -421,6 +421,15 @@ EOF
 chmod +x ~/start-linux.sh
 ```
 
+### For LXQt Users (Option B)
+
+If you installed LXQt, you need to slightly modify the script. Replace `startxfce4` with `startlxqt`:
+
+```bash
+sed -i 's/startxfce4/startlxqt/g' ~/start-linux.sh
+sed -i 's/XFCE/LXQt/g' ~/start-linux.sh
+```
+
 ### Quick Start Alias
 
 Add to your Termux bashrc:
@@ -447,6 +456,11 @@ EOF
 chmod +x ~/stop-linux.sh
 echo 'alias stoplinux="~/stop-linux.sh"' >> ~/.bashrc
 source ~/.bashrc
+```
+
+If using LXQt, update the stop script to kill LXQt processes:
+```bash
+sed -i 's/xfce/lxqt/g' ~/stop-linux.sh
 ```
 
 ---
@@ -627,6 +641,12 @@ EOF
 
 chmod +x ~/start-linux-gpu.sh
 echo 'alias linuxgpu="~/start-linux-gpu.sh"' >> ~/.bashrc
+```
+
+If using LXQt, apply the same fix:
+```bash
+sed -i 's/startxfce4/startlxqt/g' ~/start-linux-gpu.sh
+sed -i 's/XFCE/LXQt/g' ~/start-linux-gpu.sh
 ```
 
 ### Test GPU Acceleration
