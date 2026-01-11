@@ -240,6 +240,9 @@ Success
 Android 12+ aggressively kills background processes. Without disabling this, your Linux session will crash randomly.
 
 Run these commands via ADB:
+```bash
+adb install android-tools.apk
+```
 
 ```bash
 # Disable config sync for device_config
