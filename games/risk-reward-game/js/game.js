@@ -32,30 +32,59 @@ let insolventScreenEl, resultDisplayEl, confettiEl;
 
 /**
  * Initialize game when scene is loaded
+ * Multiple fallbacks for Quest 3 browser compatibility
  */
-document.addEventListener('DOMContentLoaded', () => {
-    const scene = document.querySelector('a-scene');
+(function () {
+    let initialized = false;
 
     function runInit() {
-        // Prevent multiple inits
-        if (window.gameInitialized) return;
+        if (initialized) return;
+        initialized = true;
         window.gameInitialized = true;
+        console.log('🎮 Dream Tycoon VR Initializing...');
         initGame();
     }
 
-    if (scene.hasLoaded) {
-        runInit();
+    function tryInit() {
+        const scene = document.querySelector('a-scene');
+        if (!scene) {
+            // Scene not in DOM yet, try again
+            requestAnimationFrame(tryInit);
+            return;
+        }
+
+        if (scene.hasLoaded) {
+            runInit();
+        } else {
+            scene.addEventListener('loaded', runInit);
+        }
+    }
+
+    // Primary: DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInit);
     } else {
-        scene.addEventListener('loaded', runInit);
-        // Fallback: Force start if scene takes too long (e.g. asset loading issues)
+        tryInit();
+    }
+
+    // Fallback 1: Window load event (fires after all resources)
+    window.addEventListener('load', () => {
         setTimeout(() => {
-            if (!window.gameInitialized) {
-                console.warn('⚠️ Scene load timed out, forcing game start...');
+            if (!initialized) {
+                console.warn('⚠️ Fallback 1: Window load timeout, forcing start...');
                 runInit();
             }
-        }, 4000);
-    }
-});
+        }, 2000);
+    });
+
+    // Fallback 2: Absolute timeout (Quest 3 may be slow)
+    setTimeout(() => {
+        if (!initialized) {
+            console.warn('⚠️ Fallback 2: Absolute timeout (6s), forcing start...');
+            runInit();
+        }
+    }, 6000);
+})();
 
 /**
  * Initialize game elements and state
