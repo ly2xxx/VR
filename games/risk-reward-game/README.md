@@ -77,7 +77,7 @@ The game works without audio - sounds are optional but enhance immersion.
 
 1. Push the `vr/` folder to your repo
 2. Enable GitHub Pages in Settings
-3. Access at `https://ly2xxx.github.io/VR/games/risk-reward-game/`
+3. Access at https://ly2xxx.github.io/VR/games/risk-reward-game/
 
 ### Vercel
 
