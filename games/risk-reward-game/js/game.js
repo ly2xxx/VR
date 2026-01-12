@@ -36,10 +36,24 @@ let insolventScreenEl, resultDisplayEl, confettiEl;
 document.addEventListener('DOMContentLoaded', () => {
     const scene = document.querySelector('a-scene');
 
-    if (scene.hasLoaded) {
+    function runInit() {
+        // Prevent multiple inits
+        if (window.gameInitialized) return;
+        window.gameInitialized = true;
         initGame();
+    }
+
+    if (scene.hasLoaded) {
+        runInit();
     } else {
-        scene.addEventListener('loaded', initGame);
+        scene.addEventListener('loaded', runInit);
+        // Fallback: Force start if scene takes too long (e.g. asset loading issues)
+        setTimeout(() => {
+            if (!window.gameInitialized) {
+                console.warn('⚠️ Scene load timed out, forcing game start...');
+                runInit();
+            }
+        }, 4000);
     }
 });
 
