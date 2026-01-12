@@ -47,9 +47,12 @@
             -->
         </a-assets>
 
-        <!-- Environment: Neon Casino/Trading Floor Theme -->
-        <a-entity
-            environment="preset: starry; skyType: atmosphere; skyColor: #0a0a1a; horizonColor: #1a0a3a; lighting: distant; lightPosition: 0 2 -1; fog: 0.7; fogColor: #0a0a2a; ground: flat; groundColor: #0a0a1a; groundColor2: #1a1a3a; dressing: none;"></a-entity>
+        <!-- Sky Background (Quest 3 compatible) -->
+        <a-sky color="#1a1a3a"></a-sky>
+
+        <!-- Ground Plane -->
+        <a-plane position="0 0 0" rotation="-90 0 0" width="50" height="50" color="#0a0a2a"
+            material="roughness: 0.8"></a-plane>
 
         <!-- Ambient Lighting -->
         <a-light type="ambient" color="#223" intensity="0.4"></a-light>
