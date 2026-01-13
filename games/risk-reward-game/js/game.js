@@ -81,9 +81,17 @@ let insolventScreenEl, resultDisplayEl, confettiEl;
     setTimeout(() => {
         if (!initialized) {
             console.warn('⚠️ Fallback 2: Absolute timeout (6s), forcing start...');
+
+            // FORCE THE SCENE TO BE "LOADED"
+            const scene = document.querySelector('a-scene');
+            if (scene && !scene.hasLoaded) {
+                console.warn('⚡ FORCING scene.emit("loaded") to unlock A-Frame render loop');
+                scene.emit('loaded');
+            }
+
             runInit();
         }
-    }, 6000);
+    }, 5000);
 })();
 
 /**

@@ -32,11 +32,10 @@
     <!-- A-Frame VR Scene -->
     <a-scene id="vr-scene" loading-screen="enabled: false"
         renderer="antialias: true; colorManagement: true; highRefreshRate: true"
-        vr-mode-ui="enabled: true; enterVRButton: #enter-vr-btn"
-        webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking, layers">
+        vr-mode-ui="enabled: true; enterVRButton: #enter-vr-btn" webxr="optionalFeatures: hit-test, local-floor">
 
-        <!-- Assets -->
-        <a-assets timeout="30000">
+        <!-- Assets (Empty for now to prevent loading hangs) -->
+        <a-assets timeout="1000">
             <!-- Audio (Commented out until files are available) -->
             <!-- 
             <audio id="sfx-select" src="assets/sounds/select.mp3" preload="auto"></audio>
