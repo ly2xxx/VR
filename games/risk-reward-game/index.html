@@ -287,6 +287,11 @@
             console.log('Attempting to enter VR...');
             const scene = document.querySelector('a-scene');
             if (scene) {
+                console.log('Scene loaded state: ' + scene.hasLoaded);
+                if (!scene.hasLoaded) {
+                    console.warn('WARNING: Scene has NOT fully loaded yet!');
+                }
+
                 try {
                     console.log('Calling scene.enterVR()...');
                     scene.enterVR();
@@ -298,6 +303,17 @@
                 console.error('Scene not found!');
             }
         }
+
+        // Add Scene Event Listeners
+        window.addEventListener('load', () => {
+            const scene = document.querySelector('a-scene');
+            if (scene) {
+                scene.addEventListener('enter-vr', () => console.log('EVENT: enter-vr fired! Success!'));
+                scene.addEventListener('exit-vr', () => console.log('EVENT: exit-vr fired.'));
+                scene.addEventListener('enter-vr-error', (evt) => console.error('EVENT: enter-vr-error: ' + (evt.detail ? evt.detail.error : 'Unknown error')));
+                scene.addEventListener('loaded', () => console.log('EVENT: scene loaded fired.'));
+            }
+        });
     </script>
 
     <!-- Enter VR Button (for desktop/mobile) -->
