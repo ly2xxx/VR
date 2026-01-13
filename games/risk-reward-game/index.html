@@ -246,8 +246,62 @@
 
     </a-scene>
 
+    <!-- Debug Console (Temporary) -->
+    <div id="debug-console"
+        style="position: fixed; top: 10px; left: 10px; width: 300px; height: 400px; background: rgba(0,0,0,0.8); color: lime; font-family: monospace; font-size: 12px; overflow-y: auto; z-index: 10000; padding: 10px; pointer-events: none;">
+        <div>Debug Log:</div>
+    </div>
+
+    <script>
+        // Override console to show on screen
+        const debugConsole = document.getElementById('debug-console');
+        function logToScreen(msg, type = 'log') {
+            const line = document.createElement('div');
+            line.style.color = type === 'error' ? 'red' : type === 'warn' ? 'yellow' : 'lime';
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            debugConsole.appendChild(line);
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = (...args) => { originalLog(...args); logToScreen(args.join(' ')); };
+        console.error = (...args) => { originalError(...args); logToScreen(args.join(' '), 'error'); };
+        console.warn = (...args) => { originalWarn(...args); logToScreen(args.join(' '), 'warn'); };
+
+        // Debug VR Support
+        window.addEventListener('load', () => {
+            console.log('Page loaded');
+            if (navigator.xr) {
+                navigator.xr.isSessionSupported('immersive-vr')
+                    .then(supported => console.log('WebXR immersive-vr supported: ' + supported))
+                    .catch(err => console.error('WebXR Support Check Error: ' + err));
+            } else {
+                console.error('WebXR NOT found in navigator');
+            }
+        });
+
+        function tryEnterVR() {
+            console.log('Attempting to enter VR...');
+            const scene = document.querySelector('a-scene');
+            if (scene) {
+                try {
+                    console.log('Calling scene.enterVR()...');
+                    scene.enterVR();
+                    console.log('scene.enterVR() called.');
+                } catch (e) {
+                    console.error('Error entering VR: ' + e.message);
+                }
+            } else {
+                console.error('Scene not found!');
+            }
+        }
+    </script>
+
     <!-- Enter VR Button (for desktop/mobile) -->
-    <button id="enter-vr-btn" class="vr-enter-button" onclick="document.querySelector('a-scene').enterVR();">
+    <button id="enter-vr-btn" class="vr-enter-button" onclick="tryEnterVR()">
         🥽 Enter VR
     </button>
 
