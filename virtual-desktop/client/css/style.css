@@ -1,0 +1,244 @@
+/* VR Desktop Client Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 50%, #16213e 100%);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.container {
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff0080);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 3s ease infinite;
+    background-size: 200% auto;
+}
+
+@keyframes gradient-shift {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+}
+
+.subtitle {
+    color: #888;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #666;
+    transition: all 0.3s ease;
+}
+
+.status-dot.connected {
+    background: #00d4ff;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.status-dot.streaming {
+    background: #00ff88;
+    animation: pulse 1s infinite;
+}
+
+.status-dot.error {
+    background: #ff4444;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 0 10px 5px rgba(0, 255, 136, 0);
+    }
+}
+
+.label {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.btn-primary,
+.btn-vr {
+    width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+    color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-vr {
+    background: linear-gradient(135deg, #7b2ff7 0%, #ff0080 100%);
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+.btn-vr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(123, 47, 247, 0.4);
+}
+
+.control-group {
+    margin: 1.5rem 0;
+}
+
+.control-group label {
+    display: block;
+    color: #888;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.aspect-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.aspect-btn:hover {
+    border-color: rgba(0, 212, 255, 0.5);
+    color: #fff;
+}
+
+.aspect-btn.active {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    color: #00d4ff;
+}
+
+.preview-small {
+    margin-top: 1.5rem;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16/9;
+}
+
+.preview-small video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.instructions {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(123, 47, 247, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid #7b2ff7;
+    text-align: left;
+}
+
+.instructions h3 {
+    color: #7b2ff7;
+    margin-bottom: 1rem;
+}
+
+.instructions ol {
+    padding-left: 1.5rem;
+    line-height: 1.8;
+    color: #aaa;
+}
+
+.instructions strong {
+    color: #fff;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive adjustments for Quest browser */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .btn-vr {
+        font-size: 1.2rem;
+    }
+}

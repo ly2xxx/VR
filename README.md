@@ -91,3 +91,4 @@ MIT License
 - [proot-distro](https://github.com/termux/proot-distro)
 - [Termux:X11](https://github.com/termux/termux-x11)
 - [Termux Desktops Community Scripts](https://github.com/LinuxDroidMaster/Termux-Desktops)
+![alt text](hq720.jpg) ![alt text](<Screenshot 2026-01-13 201511.png>)

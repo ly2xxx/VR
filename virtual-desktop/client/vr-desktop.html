@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR Desktop - Immersive View</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .a-enter-vr-button {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%) !important;
+            border-radius: 8px !important;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        #controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #333;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        #controls button:hover {
+            background: #00d4ff;
+        }
+
+        #controls button.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+        }
+
+        #status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 8px;
+            font-family: system-ui, sans-serif;
+            z-index: 1000;
+        }
+
+        #status.connected {
+            border-left: 4px solid #00d4ff;
+        }
+
+        #status.error {
+            border-left: 4px solid #ff4444;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status">Connecting to stream...</div>
+
+    <div id="controls">
+        <button id="btn-16-9" class="active">16:9</button>
+        <button id="btn-21-9">21:9 Ultrawide</button>
+        <button id="btn-32-9">32:9 Super Ultrawide</button>
+        <button id="btn-curved">Curved</button>
+        <button id="btn-closer">Closer</button>
+        <button id="btn-farther">Farther</button>
+    </div>
+
+    <a-scene vr-mode-ui="enabled: true" renderer="colorManagement: true; sortObjects: true"
+        webxr="requiredFeatures: local-floor; optionalFeatures: hand-tracking">
+
+        <!-- Assets -->
+        <a-assets>
+            <video id="desktop-stream" autoplay playsinline crossorigin="anonymous"></video>
+        </a-assets>
+
+        <!-- Environment - Dark cinema-like space -->
+        <a-sky color="#0a0a15"></a-sky>
+
+        <!-- Ambient lighting -->
+        <a-light type="ambient" color="#224"></a-light>
+        <a-light type="point" position="0 3 -2" intensity="0.3" color="#00d4ff"></a-light>
+
+        <!-- Floor grid -->
+        <a-entity geometry="primitive: plane; width: 20; height: 20" material="color: #111; opacity: 0.8"
+            rotation="-90 0 0" position="0 0 0">
+        </a-entity>
+
+        <!-- Virtual Screen (starts as 16:9) -->
+        <a-entity id="screen-container" position="0 1.6 -3">
+            <!-- Flat screen -->
+            <a-plane id="flat-screen" width="3.2" height="1.8"
+                material="shader: flat; src: #desktop-stream; side: front" visible="true">
+            </a-plane>
+
+            <!-- Curved screen (hidden by default) -->
+            <a-entity id="curved-screen"
+                geometry="primitive: cylinder; radius: 4; height: 1.8; openEnded: true; thetaStart: 160; thetaLength: 40; segmentsRadial: 64"
+                material="shader: flat; src: #desktop-stream; side: back" rotation="0 180 0" visible="false">
+            </a-entity>
+
+            <!-- Screen frame/bezel -->
+            <a-box id="screen-frame" width="3.3" height="1.9" depth="0.05" position="0 0 0.03"
+                material="color: #111; metalness: 0.8; roughness: 0.2">
+            </a-box>
+        </a-entity>
+
+        <!-- Hand controllers (for non-hand-tracking) -->
+        <a-entity id="left-hand" laser-controls="hand: left" raycaster="objects: #screen-container"></a-entity>
+        <a-entity id="right-hand" laser-controls="hand: right" raycaster="objects: #screen-container"></a-entity>
+
+        <!-- Camera rig -->
+        <a-entity id="rig" position="0 0 0">
+            <a-camera position="0 1.6 0" look-controls wasd-controls></a-camera>
+        </a-entity>
+    </a-scene>
+
+    <script src="js/webrtc-client.js"></script>
+    <script src="js/screen-controls.js"></script>
+    <script>
+        const statusEl = document.getElementById('status');
+        const video = document.getElementById('desktop-stream');
+        const flatScreen = document.getElementById('flat-screen');
+        const curvedScreen = document.getElementById('curved-screen');
+        const screenFrame = document.getElementById('screen-frame');
+        const screenContainer = document.getElementById('screen-container');
+
+        // Parse URL params
+        const params = new URLSearchParams(window.location.search);
+        const initialRatio = params.get('ratio') || '16:9';
+
+        // Screen dimensions for different aspect ratios
+        const aspectRatios = {
+            '16:9': { width: 3.2, height: 1.8 },
+            '21:9': { width: 3.78, height: 1.62 },
+            '32:9': { width: 5.76, height: 1.62 }
+        };
+
+        let isCurved = false;
+        let currentDistance = 3;
+
+        // Initialize WebRTC client
+        const client = new VRDesktopClient();
+
+        client.onStatusChange = (status, message) => {
+            statusEl.textContent = message;
+            statusEl.className = status;
+        };
+
+        client.onStream = (stream) => {
+            statusEl.textContent = 'Stream connected!';
+            statusEl.classList.add('connected');
+            video.srcObject = stream;
+            video.play().catch(e => console.log('Autoplay blocked:', e));
+
+            // Hide status after a moment
+            setTimeout(() => {
+                statusEl.style.opacity = '0';
+            }, 2000);
+        };
+
+        // Connect to server
+        async function init() {
+            try {
+                await client.connect();
+                await client.requestStream();
+            } catch (e) {
+                statusEl.textContent = 'Failed to connect: ' + e.message;
+                statusEl.classList.add('error');
+            }
+        }
+
+        // Screen controls
+        function setAspectRatio(ratio) {
+            const dims = aspectRatios[ratio];
+            if (!dims) return;
+
+            // Update flat screen
+            flatScreen.setAttribute('width', dims.width);
+            flatScreen.setAttribute('height', dims.height);
+
+            // Update curved screen
+            const thetaLength = (dims.width / (2 * Math.PI * 4)) * 360;
+            curvedScreen.setAttribute('geometry', {
+                primitive: 'cylinder',
+                radius: 4,
+                height: dims.height,
+                openEnded: true,
+                thetaStart: 180 - thetaLength / 2,
+                thetaLength: thetaLength,
+                segmentsRadial: 64
+            });
+
+            // Update frame
+            screenFrame.setAttribute('width', dims.width + 0.1);
+            screenFrame.setAttribute('height', dims.height + 0.1);
+
+            // Update button states
+            document.querySelectorAll('#controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${ratio.replace(':', '-')}`).classList.add('active');
+        }
+
+        function toggleCurved() {
+            isCurved = !isCurved;
+            flatScreen.setAttribute('visible', !isCurved);
+            curvedScreen.setAttribute('visible', isCurved);
+            screenFrame.setAttribute('visible', !isCurved);
+            document.getElementById('btn-curved').classList.toggle('active', isCurved);
+        }
+
+        function adjustDistance(delta) {
+            currentDistance = Math.max(1.5, Math.min(6, currentDistance + delta));
+            screenContainer.setAttribute('position', `0 1.6 ${-currentDistance}`);
+        }
+
+        // Button handlers
+        document.getElementById('btn-16-9').onclick = () => setAspectRatio('16:9');
+        document.getElementById('btn-21-9').onclick = () => setAspectRatio('21:9');
+        document.getElementById('btn-32-9').onclick = () => setAspectRatio('32:9');
+        document.getElementById('btn-curved').onclick = toggleCurved;
+        document.getElementById('btn-closer').onclick = () => adjustDistance(-0.5);
+        document.getElementById('btn-farther').onclick = () => adjustDistance(0.5);
+
+        // Set initial ratio
+        setAspectRatio(initialRatio);
+
+        // Start connection
+        init();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR Desktop - Screen Streamer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #44ff44;
+        }
+
+        .status-dot.streaming {
+            background: #00d4ff;
+            animation: pulse-blue 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes pulse-blue {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(0, 212, 255, 0);
+            }
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            color: #fff;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .preview-container {
+            margin-top: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16/9;
+            display: none;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .viewers {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(123, 47, 247, 0.1);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .viewers.active {
+            display: block;
+        }
+
+        .instructions {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .instructions h3 {
+            margin-bottom: 0.75rem;
+            color: #00d4ff;
+        }
+
+        .instructions ol {
+            padding-left: 1.5rem;
+            line-height: 1.8;
+            color: #aaa;
+        }
+
+        .instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #00d4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🖥️ VR Desktop Streamer</h1>
+    <p class="subtitle">Stream your desktop to Quest 3</p>
+
+    <div class="status-card">
+        <div class="status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Connecting to server...</span>
+        </div>
+
+        <button id="startBtn" disabled>Start Screen Share</button>
+
+        <div class="preview-container" id="previewContainer">
+            <video id="preview" autoplay muted playsinline></video>
+        </div>
+
+        <div class="viewers" id="viewersInfo">
+            <strong>👥 Viewers connected:</strong> <span id="viewerCount">0</span>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Quick Start</h3>
+            <ol>
+                <li>Click <strong>"Start Screen Share"</strong> above</li>
+                <li>Select your entire screen or a window</li>
+                <li>On Quest 3, open browser and go to the URL shown in the console</li>
+                <li>Click <strong>"Enter VR"</strong> to view in immersive mode</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const startBtn = document.getElementById('startBtn');
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('previewContainer');
+        const viewersInfo = document.getElementById('viewersInfo');
+        const viewerCount = document.getElementById('viewerCount');
+
+        let ws;
+        let localStream;
+        const peerConnections = new Map();
+
+        // ICE servers for NAT traversal (local network, so just use STUN)
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' }
+            ]
+        };
+
+        function connect() {
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${location.host}`);
+
+            ws.onopen = () => {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected - Ready to stream';
+                startBtn.disabled = false;
+            };
+
+            ws.onclose = () => {
+                statusDot.classList.remove('connected', 'streaming');
+                statusText.textContent = 'Disconnected - Reconnecting...';
+                startBtn.disabled = true;
+                setTimeout(connect, 2000);
+            };
+
+            ws.onmessage = async (event) => {
+                const message = JSON.parse(event.data);
+                await handleSignaling(message);
+            };
+        }
+
+        async function handleSignaling(message) {
+            switch (message.type) {
+                case 'connected':
+                    console.log('Connected with ID:', message.clientId);
+                    break;
+
+                case 'offer':
+                    // Viewer wants to connect
+                    await handleViewerOffer(message);
+                    break;
+
+                case 'ice-candidate':
+                    const pc = peerConnections.get(message.from);
+                    if (pc && message.candidate) {
+                        await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+                    }
+                    break;
+            }
+        }
+
+        async function handleViewerOffer(message) {
+            const pc = new RTCPeerConnection(iceServers);
+            peerConnections.set(message.from, pc);
+
+            // Add our stream tracks
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                });
+            }
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    ws.send(JSON.stringify({
+                        type: 'ice-candidate',
+                        target: message.from,
+                        candidate: event.candidate
+                    }));
+                }
+            };
+
+            pc.onconnectionstatechange = () => {
+                if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                    peerConnections.delete(message.from);
+                    updateViewerCount();
+                }
+            };
+
+            await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            ws.send(JSON.stringify({
+                type: 'answer',
+                target: message.from,
+                answer: answer
+            }));
+
+            updateViewerCount();
+        }
+
+        function updateViewerCount() {
+            const count = peerConnections.size;
+            viewerCount.textContent = count;
+            viewersInfo.classList.toggle('active', count > 0);
+        }
+
+        async function startStreaming() {
+            try {
+                localStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        cursor: 'always',
+                        displaySurface: 'monitor'
+                    },
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        sampleRate: 44100
+                    }
+                });
+
+                preview.srcObject = localStream;
+                previewContainer.classList.add('active');
+
+                statusDot.classList.add('streaming');
+                statusText.textContent = 'Streaming - Waiting for viewers...';
+                startBtn.textContent = 'Stop Streaming';
+                startBtn.onclick = stopStreaming;
+
+                // Register as streamer
+                ws.send(JSON.stringify({ type: 'register-streamer' }));
+
+                // Handle stream end
+                localStream.getVideoTracks()[0].onended = stopStreaming;
+
+            } catch (err) {
+                console.error('Failed to start streaming:', err);
+                statusText.textContent = 'Failed to start - Please try again';
+            }
+        }
+
+        function stopStreaming() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            peerConnections.forEach(pc => pc.close());
+            peerConnections.clear();
+
+            preview.srcObject = null;
+            previewContainer.classList.remove('active');
+            viewersInfo.classList.remove('active');
+
+            statusDot.classList.remove('streaming');
+            statusText.textContent = 'Connected - Ready to stream';
+            startBtn.textContent = 'Start Screen Share';
+            startBtn.onclick = startStreaming;
+        }
+
+        startBtn.onclick = startStreaming;
+        connect();
+    </script>
+</body>
+
+</html>

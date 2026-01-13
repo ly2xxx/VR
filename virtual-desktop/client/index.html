@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR Desktop - Quest 3</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>🥽 VR Desktop Viewer</h1>
+        <p class="subtitle">Connect to your PC's desktop stream</p>
+
+        <div class="card">
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Checking connection...</span>
+            </div>
+
+            <div id="connectForm">
+                <p class="label">Server detected automatically</p>
+                <button id="connectBtn" class="btn-primary">Connect to Desktop</button>
+            </div>
+
+            <div id="streamControls" class="hidden">
+                <button id="enterVrBtn" class="btn-vr">🥽 Enter VR Mode</button>
+
+                <div class="control-group">
+                    <label>Aspect Ratio</label>
+                    <div class="btn-group">
+                        <button class="aspect-btn active" data-ratio="16:9">16:9</button>
+                        <button class="aspect-btn" data-ratio="21:9">21:9</button>
+                        <button class="aspect-btn" data-ratio="32:9">32:9</button>
+                    </div>
+                </div>
+
+                <div class="preview-small">
+                    <video id="preview" autoplay playsinline></video>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>Make sure your PC is running the streamer</li>
+                <li>Click <strong>"Connect to Desktop"</strong></li>
+                <li>Click <strong>"Enter VR Mode"</strong> to view in headset</li>
+                <li>Use controller triggers to adjust screen size</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="js/webrtc-client.js"></script>
+    <script>
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const connectBtn = document.getElementById('connectBtn');
+        const enterVrBtn = document.getElementById('enterVrBtn');
+        const connectForm = document.getElementById('connectForm');
+        const streamControls = document.getElementById('streamControls');
+        const preview = document.getElementById('preview');
+        const aspectBtns = document.querySelectorAll('.aspect-btn');
+
+        let client;
+        let selectedRatio = '16:9';
+
+        // Initialize
+        async function init() {
+            client = new VRDesktopClient();
+
+            client.onStatusChange = (status, message) => {
+                statusText.textContent = message;
+                statusDot.className = 'status-dot ' + status;
+            };
+
+            client.onStream = (stream) => {
+                preview.srcObject = stream;
+                connectForm.classList.add('hidden');
+                streamControls.classList.remove('hidden');
+            };
+
+            // Check if server is available
+            try {
+                await client.connect();
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Server connected - Ready';
+            } catch (e) {
+                statusText.textContent = 'Server not found';
+            }
+        }
+
+        connectBtn.onclick = async () => {
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
+
+            try {
+                await client.requestStream();
+            } catch (e) {
+                statusText.textContent = 'Connection failed: ' + e.message;
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Connect to Desktop';
+            }
+        };
+
+        enterVrBtn.onclick = () => {
+            // Navigate to VR scene with stream
+            const params = new URLSearchParams({
+                ratio: selectedRatio
+            });
+            window.location.href = `vr-desktop.html?${params}`;
+        };
+
+        aspectBtns.forEach(btn => {
+            btn.onclick = () => {
+                aspectBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedRatio = btn.dataset.ratio;
+            };
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
